@@ -1,0 +1,30 @@
+We are building a demo. Here is a blueprint to build the demo that can show how to use PyTorch for building and training a model from scratch 
+implementing the ResNet-18 architecture (call this a base model), how transfer learning through fine-tuning works with a production level
+pretrained model (use torchvision ResNet-18 model pretrained on ImageNet dataset), and the comparison between two to show the benefits
+of fine-tuning over base model training from scratch. 
+Training, testing, and inferencing statistics such as accuracy and time will be printed. Visualization will be used for comparing the
+performance of fine-tuned model vs the base model for training and for inferencing.
+Use the publicly available CIFAR-10 image dataset for the demo. Consider using the provided rules and skills.
+Only build a file structure under the current directory. Do not execute any steps. The steps will be followed individually for
+demonstration to the attendees. 
+
+- The demo requires to install and activate venv environment. Make sure to create venv file to use for checking syntax error etc.
+- Create a requirements.txt file with necessary libraries to pip install the latest stable version of PyTorch as well libraries to
+visualize training and testing accuracy, and to visualize base vs fine-tuned model performance comparison through a bar chart. The
+bar chart should also show comparison in percent gain and relative gain. Show a separate bar chart for the training and inferencing.
+Do not run installation automatically. Wait for the user to manually verify the libraries and install them. 
+- Following this create a Python script to build, train and test base model building, a script for the base model inferencing,
+a script for fine-tuning model, a script for the fine-tuned model inferencing, and a script to compare performance of fine-tuned model
+accuracy/performance against the base model for the training and inferencing. 
+- In the script for model fine-tuning, by default, enable unfreezing of all the layers of a pre-trained model, however provide a flag
+to freeze them giving users flexibility to do so. Also, since pretrained model has trained with ImageNet which has a different image
+resolution than CIFAR-10, modify the pretrained model's first convolutional layer to accept 32×32 images. 
+- Print training loss/accuracy statistics and
+training or inferencing time appropriate to the script. Don’t overload visualization. Use 3 epochs to save time. Save model checkpoint
+for the best model and the final model. Save inferencing and model comparison results. 
+- For device check in the scripts, check for MPS, followed by, CUDA and CPU.
+- Make sure to optimize or adjust learning rates for base model as well fineturned model using the best practices.
+- Use num_workers=0 considering we are using MPS backend.
+- Create QUICKSTART with steps to install libraries with pip and run python scripts. Create a README for the demo.
+In the QUICKSTART,  also let user know to verify requirements.txt, if any new libraries where added, and manually run pip againtst
+the requirements.txt.

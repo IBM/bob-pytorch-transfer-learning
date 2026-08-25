@@ -1,78 +1,105 @@
-<!-- This should be the location of the title of the repository, normally the short name -->
-# repo-template
+# PyTorch Transfer Learning Demo — Base vs Fine-Tuned ResNet-18
 
-<!-- Build Status, is a great thing to have at the top of your repository, it shows that you take your CI/CD as first class citizens -->
-<!-- [![Build Status](https://travis-ci.org/jjasghar/ibm-cloud-cli.svg?branch=master)](https://travis-ci.org/jjasghar/ibm-cloud-cli) -->
+Demonstrates the benefit of transfer learning by training two models on the CIFAR-10 dataset and comparing their
+accuracy — built end-to-end using IBM Bob, IBM's agentic AI coding assistant.
 
-<!-- Not always needed, but a scope helps the user understand in a short sentance like below, why this repo exists -->
-## Scope
+---
 
-The purpose of this project is to provide a template for new open source repositories.
+## What the demo shows
 
-<!-- A more detailed Usage or detailed explaination of the repository here -->
-## Usage
+| Model | Description |
+|---|---|
+| **Base model** | ResNet-18 built from scratch, trained on CIFAR-10 for 3 epochs with no pretrained weights |
+| **Fine-tuned model** | torchvision ResNet-18 (ImageNet pretrained), adapted for 32×32 input and fine-tuned on CIFAR-10 for 3 epochs |
 
-This repository contains some example best practices for open source repositories:
+The fine-tuned model typically reaches higher accuracy in the same number of epochs, illustrating why pretrained weights matter.
 
-* [LICENSE](LICENSE)
-* [README.md](README.md)
-* [CONTRIBUTING.md](CONTRIBUTING.md)
-* [MAINTAINERS.md](MAINTAINERS.md)
-* [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
-<!-- A Changelog allows you to track major changes and things that happen, https://github.com/github-changelog-generator/github-changelog-generator can help automate the process -->
-* [CHANGELOG.md](CHANGELOG.md)
+---
 
-> These are optional
+## Dataset
 
-<!-- The following are OPTIONAL, but strongly suggested to have in your repository. -->
-* [dco.yml](.github/dco.yml) - This enables DCO bot for you, please take a look https://github.com/probot/dco for more details.
-* [travis.yml](.travis.yml) - This is a example `.travis.yml`, please take a look https://docs.travis-ci.com/user/tutorial/ for more details.
+**CIFAR-10** — 60,000 colour images across 10 classes (airplane, automobile, bird, cat, deer, dog, frog, horse, ship, truck).  
+Image size: 32×32 pixels. Split: 50,000 train / 10,000 test.
 
-These may be copied into a new or existing project to make it easier for developers not on a project team to collaborate.
+---
 
-<!-- A notes section is useful for anything that isn't covered in the Usage or Scope. Like what we have below. -->
-## Notes
+## Architecture
 
-**NOTE: While this boilerplate project uses the Apache 2.0 license, when
-establishing a new repo using this template, please use the
-license that was approved for your project.**
+**Base model** — ResNet-18 implemented with `nn.Module` from scratch. The final fully-connected layer outputs 10 classes.
 
-**NOTE: This repository has been configured with the [DCO bot](https://github.com/probot/dco).
-When you set up a new repository that uses the Apache license, you should
-use the DCO to manage contributions. The DCO bot will help enforce that.
-Please contact one of the IBM GH Org stewards.**
+**Fine-tuned model** — torchvision `resnet18(weights=ResNet18_Weights.DEFAULT)` with three adaptations for 32×32 input:
+- `conv1` replaced with `Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)`
+- `maxpool` replaced with `nn.Identity()` (avoids spatial collapse)
+- `fc` replaced with `Linear(512, 10)`
 
-<!-- Questions can be useful but optional, this gives you a place to say, "This is how to contact this project maintainers or create PRs -->
-If you have any questions or issues you can create a new [issue here][issues].
+Both models train with `CrossEntropyLoss` + `SGD` (momentum=0.9, weight_decay=5e-4) + `CosineAnnealingLR`, 3 epochs.
 
-Pull requests are very welcome! Make sure your patches are well tested.
-Ideally create a topic branch for every separate change you make. For
-example:
+---
 
-1. Fork the repo
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Added some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request
+## Scripts
 
-## License
+Run them in this order:
 
-All source files must include a Copyright and License header. The SPDX license header is 
-preferred because it can be easily scanned.
+| # | Script | What it does |
+|---|---|---|
+| 1 | `train_base_model.py` | Trains ResNet-18 from scratch on CIFAR-10; saves checkpoints |
+| 2 | `infer_base_model.py` | Runs test-set inference with the base model; writes JSON results |
+| 3 | `train_finetune_model.py` | Fine-tunes pretrained ResNet-18 on CIFAR-10; saves checkpoints |
+| 4 | `infer_finetune_model.py` | Runs test-set inference with the fine-tuned model; writes JSON results |
+| 5 | `compare_models.py` | Reads both result JSONs; prints a summary and saves a bar chart |
 
-If you would like to see the detailed LICENSE click [here](LICENSE).
+### Optional flag
 
-```text
-#
-# Copyright IBM Corp. {Year project was created} - {Current Year}
-# SPDX-License-Identifier: Apache-2.0
-#
+```bash
+python train_finetune_model.py --freeze-backbone
 ```
-## Authors
 
-Optionally, you may include a list of authors, though this is redundant with the built-in
-GitHub list of contributors.
+Freezes all layers except the final `fc` layer. Default is fully unfrozen (all layers trainable).
 
-- Author: New OpenSource IBMer <new-opensource-ibmer@ibm.com>
+---
 
-[issues]: https://github.com/IBM/repo-template/issues/new
+## Outputs
+
+| Location | Content |
+|---|---|
+| `checkpoints/best_base_model.pth` | Best base model weights (by val accuracy) |
+| `checkpoints/final_base_model.pth` | Base model weights after the last epoch |
+| `checkpoints/best_finetune_model.pth` | Best fine-tuned model weights (by val accuracy) |
+| `checkpoints/final_finetune_model.pth` | Fine-tuned model weights after the last epoch |
+| `results/base_model_inference.json` | Base model test accuracy + inference time |
+| `results/finetune_model_inference.json` | Fine-tuned model test accuracy + inference time |
+| `results/training_accuracy_comparison.png` | Bar chart: training accuracy, base vs fine-tuned |
+| `results/inference_accuracy_comparison.png` | Bar chart: inference accuracy, base vs fine-tuned |
+
+---
+
+## Quick start
+
+See [`QUICKSTART.md`](QUICKSTART.md) for the full step-by-step setup and run instructions.
+
+> All scripts auto-select the best available device: **MPS → CUDA → CPU**.
+
+---
+
+## About IBM Bob
+
+IBM Bob is an agentic AI assistant that goes beyond traditional chatbots by:
+
+- **Taking autonomous actions** to complete tasks
+- **Using tools** to read, write, and modify files
+- **Breaking down complex problems** into executable steps
+- **Iterating and refining** based on results and feedback
+
+Bob represents the future of AI-assisted development and productivity.
+
+---
+
+## Acknowledgements & Licenses
+
+| Component | Source | License |
+|---|---|---|
+| **CIFAR-10 dataset** | Krizhevsky, A., Nair, V., & Hinton, G. (2009). [*Learning Multiple Layers of Features from Tiny Images*](https://www.cs.toronto.edu/~kriz/learning-features-2009-TR.pdf). University of Toronto. | MIT |
+| **ResNet-18 pretrained weights** | [pytorch/vision](https://github.com/pytorch/vision) — ImageNet-1K weights distributed by torchvision | BSD 3-Clause |
+| **PyTorch & torchvision** | [pytorch/pytorch](https://github.com/pytorch/pytorch) / [pytorch/vision](https://github.com/pytorch/vision) | BSD 3-Clause |
+
+All third-party components used in this demo are permissively licensed and free for research, educational, and commercial use. No modifications were made to the pretrained weights or the dataset.

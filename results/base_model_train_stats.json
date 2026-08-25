@@ -1,0 +1,6 @@
+{
+  "best_val_accuracy": 59.39,
+  "final_val_accuracy": 59.39,
+  "train_accuracy": 61.418,
+  "total_training_time_sec": 87.11
+}

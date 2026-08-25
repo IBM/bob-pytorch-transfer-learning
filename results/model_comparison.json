@@ -1,0 +1,18 @@
+{
+  "training_accuracy": {
+    "base": 61.418,
+    "fine_tuned": 92.798,
+    "abs_gain": "+31.38 pp",
+    "rel_gain": "+51.09% relative"
+  },
+  "inference_accuracy": {
+    "base": 59.39,
+    "fine_tuned": 91.37,
+    "abs_gain": "+31.98 pp",
+    "rel_gain": "+53.85% relative"
+  },
+  "inference_time_sec": {
+    "base": 1.92,
+    "fine_tuned": 1.87
+  }
+}
